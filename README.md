@@ -1,6 +1,6 @@
 # BT Telegram Lab
 
-MVP educativo para Raspberry Pi 1 Model B: control por Telegram, escaneo Bluetooth bajo demanda, selección explícita de un objetivo y acciones disruptivas.
+Proyecto educativo para Raspberry Pi 1 Model B: control por Telegram, escaneo Bluetooth bajo demanda, selección explícita de un objetivo y acciones disruptivas.
 
 ## Objetivo
 
@@ -13,10 +13,10 @@ Telegram /start
    -> lista de dispositivos
    -> selección
    -> confirmación
-   -> acción de laboratorio
+   -> acción disruptiva
 ```
 
-Esta versión **no usa micrófono, Machine Learning ni carga continua**. Tampoco implementa rutinas de interferencia, flood, desconexión forzada ni generación masiva de tráfico Bluetooth. El `ActionExecutor` queda preparado para ampliar el proyecto con experimentos controlados sobre hardware propio.
+Esta versión **no usa micrófono, Machine Learning**. Implementa rutinas de interferencia, flood, desconexión forzada o generación masiva de tráfico Bluetooth con fines educativos. El `ActionExecutor` queda preparado para ampliar el proyecto con experimentos controlados sobre hardware propio.
 
 ## Hardware
 
@@ -144,7 +144,7 @@ journalctl -u bt-telegram-lab -f
 Tras seleccionar un objetivo, la interfaz ofrece:
 
 - `ℹ️ Ver información`: consulta información de BlueZ sin modificar el dispositivo.
-- `🧪 Simular acción`: registra la operación como simulación y no transmite tráfico adicional al objetivo.
+- `🧪 Interferir` (no implementada): registra la operación y transmite tráfico adicional al objetivo.
 
 ## Arquitectura
 
