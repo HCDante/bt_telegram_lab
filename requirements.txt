@@ -1,0 +1,2 @@
+# Intentionally empty for the Pi 1 MVP.
+# The application uses only the Python standard library.

@@ -1,0 +1,16 @@
+[Unit]
+Description=BT Telegram Lab
+After=network-online.target bluetooth.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/opt/bt-telegram-lab
+ExecStart=/usr/bin/python3 /opt/bt-telegram-lab/app.py
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
