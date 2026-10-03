@@ -25,6 +25,10 @@ class Config:
     log_level: str
     database_path: str
 
+    bt_disrupt_packet_size: int
+    bt_disrupt_delay: float
+    bt_disrupt_threads: int
+
 
 def load_config() -> Config:
     _load_dotenv()
@@ -48,4 +52,7 @@ def load_config() -> Config:
         bt_interface=os.environ.get("BT_INTERFACE", "hci0"),
         log_level=os.environ.get("LOG_LEVEL", "INFO"),
         database_path=os.environ.get("DATABASE_PATH", "data/targets.db"),
+        bt_disrupt_packet_size=int(os.environ.get("BT_DISRUPT_PACKET_SIZE", "800")),
+        bt_disrupt_delay=float(os.environ.get("BT_DISRUPT_DELAY", "0.5")),
+        bt_disrupt_threads=int(os.environ.get("BT_DISRUPT_THREADS", "4")),
     )

@@ -158,10 +158,31 @@ class TelegramBot:
         if data == "cancel":
             self.controller.cancel(chat_id)
             self.send_message(chat_id, "Selección cancelada.")
+            return
+
+        #Manejar los callbacks de la acción  
+        if data == "disrupt_menu":
+            self.show_disrupt_menu(chat_id)
+            return
+        if data.startswith("disrupt:"):
+            method = data.split(":", 1)[1]
+            self.start_disrupt(chat_id, method)
+            return
+        if data == "disrupt_stop":
+            self.stop_disrupt(chat_id)
+            return
+        if data == "back_to_target":
+            target = self.controller.selected(chat_id)
+            if target:
+                self.show_target(chat_id, target)
+            else:
+                self.send_message(chat_id, "No hay objetivo seleccionado.")
+            return
 
     def show_target(self, chat_id: int, target: BluetoothDevice, verified: bool = False) -> None:
         keyboard = [
             [{"text": "ℹ️ Ver información", "callback_data": "info"}],
+            [{"text": "🦷 Caries Digital", "callback_data": "disrupt_menu"}],
             [{"text": "❌ Cancelar", "callback_data": "cancel"}],
         ]
         verification = "\nEstado: ✅ encontrado en el último escaneo." if verified else ""
@@ -269,3 +290,51 @@ class TelegramBot:
         if not body.get("ok"):
             raise RuntimeError(body.get("description", "Telegram API error"))
         return body.get("result")
+    
+    #Meétodos auxiliares para interferencia
+    def show_disrupt_menu(self, chat_id: int) -> None:
+        keyboard = [
+            [{"text": "📡 RFCOMM Connect", "callback_data": "disrupt:rfcomm"}],
+            [{"text": "🌊 L2CAP Flood", "callback_data": "disrupt:l2ping"}],
+            [{"text": "⬅️ Volver", "callback_data": "back_to_target"}],
+        ]
+        self.send_message(
+            chat_id,
+            "Selecciona el método de interrupción:",
+            keyboard,
+        )
+
+    def start_disrupt(self, chat_id: int, method: str) -> None:
+        target = self.controller.selected(chat_id)
+        if not target:
+            self.send_message(chat_id, "No hay objetivo seleccionado.")
+            return
+
+        def on_finish(cid: int, m: str) -> None:
+            try:
+                self.send_message(cid, f"✅ Acción {m} finalizada.")
+            except Exception:
+                LOG.exception("No se pudo notificar el fin de la acción")
+
+        try:
+            self.controller.disrupt(chat_id, method, on_finish=on_finish)
+        except RuntimeError:
+            self.send_message(chat_id, "⚠️ Ya hay una acción en curso. Pulsa Detener primero.")
+            return
+        except Exception as exc:
+            self.send_message(chat_id, f"Error al iniciar: {exc}")
+            return
+
+        keyboard = [[{"text": "⏹ Detener", "callback_data": "disrupt_stop"}]]
+        self.send_message(
+            chat_id,
+            f"🦷 Caries Digital activada ({method}) sobre {target.name}\n"
+            f"MAC: {target.address}\nPulsa Detener para finalizar.",
+            keyboard,
+        )
+
+    def stop_disrupt(self, chat_id: int) -> None:
+        if self.controller.stop_disrupt(chat_id):
+            self.send_message(chat_id, "⏹ Acción detenida.")
+        else:
+            self.send_message(chat_id, "No hay acción en curso.")

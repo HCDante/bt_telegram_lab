@@ -8,6 +8,7 @@ from config import Config
 from core.models import BluetoothDevice, Target
 from core.state import SessionState
 from storage.repository import TargetRepository
+from core.action_executor import ActionExecutor
 
 LOG = logging.getLogger(__name__)
 
@@ -17,6 +18,12 @@ class Controller:
         self.scanner = BluetoothScanner(cfg.bt_scan_seconds, cfg.bt_interface)
         self.repo = TargetRepository(cfg.database_path)
         self.sessions = SessionState()
+        self.executor = ActionExecutor(
+            interface=cfg.bt_interface,
+            packet_size=cfg.bt_disrupt_packet_size,
+            delay=cfg.bt_disrupt_delay,
+            threads=cfg.bt_disrupt_threads,
+        )
 
     def scan(self, chat_id: int) -> List[BluetoothDevice]:
         devices = self.scanner.scan()
@@ -71,3 +78,14 @@ class Controller:
     def cancel(self, chat_id: int) -> None:
         session = self.sessions.get(chat_id)
         session.selected = None
+
+    # Inicia la acción disruptiva sobre el objetivo seleccionado
+    def disrupt(self, chat_id: int, method: str, on_finish=None) -> bool:
+        target = self.selected(chat_id)
+        if target is None:
+            return False
+        self.executor.start(chat_id, target.address, method, on_finish=on_finish)
+        return True
+
+    def stop_disrupt(self, chat_id: int) -> bool:
+        return self.executor.stop(chat_id)
